@@ -10,7 +10,8 @@ class FaceProcessor:
         self.mp_face_detection = mp.solutions.face_detection
         # model_selection=0 dùng cho khoảng cách gần (trong vòng 2 mét), 1 là cho xa (5 mét)
         self.face_detection = self.mp_face_detection.FaceDetection(
-            min_detection_confidence=0.7, model_selection=0)
+            min_detection_confidence=cfg.FACE_DETECTION_CONFIDENCE, 
+            model_selection=cfg.FACE_DETECTION_MODEL)
 
         self.consecutive_success_frames = 0
 
@@ -71,8 +72,8 @@ class FaceProcessor:
 
         message = "Vui lòng di chuyển vào khung hình"
         status = "waiting"  # waiting, adjusting, ready, capturing
-        color = (0, 0, 255)  # Đỏ
-        thickness = 2
+        color = cfg.COLOR_RED
+        thickness = cfg.THICKNESS_NORMAL
 
         target_face = None  # Khuôn mặt được chọn để xử lý
 
@@ -108,8 +109,8 @@ class FaceProcessor:
                 status = "adjusting" if not is_valid else "ready"
 
                 if is_valid:
-                    color = (0, 255, 0)  # Xanh
-                    thickness = 4
+                    color = cfg.COLOR_GREEN
+                    thickness = cfg.THICKNESS_THICK
                     self.consecutive_success_frames += 1
 
                     if self.consecutive_success_frames >= cfg.REQUIRED_FRAMES:
@@ -125,7 +126,7 @@ class FaceProcessor:
 
                         self.consecutive_success_frames = 0
                 else:
-                    color = (0, 255, 255)  # Vàng
+                    color = cfg.COLOR_YELLOW
                     self.consecutive_success_frames = 0
 
         else:
@@ -141,15 +142,12 @@ class FaceProcessor:
             overlay,
             (cfg.ZONE_X, cfg.ZONE_Y),
             (cfg.ZONE_X + cfg.ZONE_WIDTH, cfg.ZONE_Y + cfg.ZONE_HEIGHT),
-            (255, 255, 255),  # màu
+            cfg.COLOR_WHITE,
             -1  # fill
         )
 
-        # Độ trong suốt
-        alpha = 0.0
-
         # Blend overlay vào frame_drawn → tạo nền trong suốt
-        frame_drawn = cv2.addWeighted(overlay, alpha, frame_drawn, 1 - alpha, 0)
+        frame_drawn = cv2.addWeighted(overlay, cfg.OVERLAY_ALPHA, frame_drawn, 1 - cfg.OVERLAY_ALPHA, 0)
 
         # ====== KHÔNG VẼ VIỀN RECTANGLE ======
         # (bỏ hẳn đoạn vẽ viền rectangle)
@@ -157,14 +155,14 @@ class FaceProcessor:
         # ====== CHỈ VẼ ELLIPSE (HIỆN ĐẦY ĐỦ) ======
         ellipse_center_x = cfg.ZONE_X + cfg.ZONE_WIDTH // 2
         ellipse_center_y = cfg.ZONE_Y + cfg.ZONE_HEIGHT // 2
-        ellipse_axes_x = cfg.ZONE_WIDTH // 2 - 10
-        ellipse_axes_y = cfg.ZONE_HEIGHT // 2 - 10
+        ellipse_axes_x = cfg.ZONE_WIDTH // 2 - cfg.ELLIPSE_OFFSET
+        ellipse_axes_y = cfg.ZONE_HEIGHT // 2 - cfg.ELLIPSE_OFFSET
 
         cv2.ellipse(
             frame_drawn,
             (ellipse_center_x, ellipse_center_y),
             (ellipse_axes_x, ellipse_axes_y),
-            0, 0, 360, color, 6
+            0, 0, 360, color, cfg.THICKNESS_ELLIPSE
         )
         # Không vẽ text trên video nữa, sẽ gửi qua Socket.IO
         # cv2.rectangle(frame_drawn, (0, 0), (cfg.FRAME_WIDTH, 60), (0, 0, 0), -1)

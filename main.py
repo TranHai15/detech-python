@@ -1,4 +1,3 @@
-# app.py
 from flask import Flask, Response, send_from_directory
 from flask_socketio import SocketIO
 from flask_cors import CORS
@@ -10,15 +9,17 @@ import threading
 # Import module cá nhân
 from camera_service import CameraStream
 from face_logic import FaceProcessor
-import config as cfg
+import config as cfg  # Import file config đã cập nhật
 
 app = Flask(__name__)
 
 # --- CẤU HÌNH CORS ĐẦY ĐỦ ---
+# Sử dụng danh sách origin từ file config.py
+
 # 1. CORS cho Flask (HTTP requests)
 CORS(app,
      resources={r"/*": {
-         "origins": ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5173"],
+         "origins": cfg.FRONTEND_ORIGINS,  # <--- Dùng biến từ config
          "methods": ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
          "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
          "supports_credentials": True
@@ -27,16 +28,16 @@ CORS(app,
 # 2. CORS cho Socket.IO (WebSocket/Polling)
 socketio = SocketIO(
     app,
-    cors_allowed_origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5173"],
+    cors_allowed_origins=cfg.FRONTEND_ORIGINS,
     async_mode='threading',
     allow_upgrades=True,
-    ping_timeout=60,
-    ping_interval=25
+    ping_timeout=cfg.SOCKET_PING_TIMEOUT,
+    ping_interval=cfg.SOCKET_PING_INTERVAL
 )
 
-IMAGE_FOLDER = 'captured_faces'
-if not os.path.exists(IMAGE_FOLDER):
-    os.makedirs(IMAGE_FOLDER)
+# Sử dụng IMAGE_FOLDER từ config
+if not os.path.exists(cfg.IMAGE_FOLDER):
+    os.makedirs(cfg.IMAGE_FOLDER)
 
 app_state = {
     "is_capturing": False
@@ -59,7 +60,7 @@ def handle_stop_capture():
 # --- API HTTP ---
 @app.route('/images/<path:filename>')
 def serve_image(filename):
-    return send_from_directory(IMAGE_FOLDER, filename)
+    return send_from_directory(cfg.IMAGE_FOLDER, filename)
 
 def generate_frames():
     camera = CameraStream()
@@ -96,12 +97,12 @@ def generate_frames():
                 print("-> ✅ Đã chụp được ảnh!")
 
                 # 1. Lưu ảnh
-                filename = f"face_{int(time.time())}.jpg"
-                filepath = os.path.join(IMAGE_FOLDER, filename)
+                filename = f"{cfg.IMAGE_PREFIX}{int(time.time())}{cfg.IMAGE_EXTENSION}"
+                filepath = os.path.join(cfg.IMAGE_FOLDER, filename)
                 cv2.imwrite(filepath, face_image)
 
                 # 2. Gửi Socket trả ảnh về React
-                image_url = f"http://localhost:5000/images/{filename}"
+                image_url = f"{cfg.SERVER_BASE_URL}/images/{filename}"
                 socketio.emit('capture_success', {'url': image_url})
                 print(f"-> Gửi ảnh về Client: {image_url}")
 
@@ -128,7 +129,7 @@ def generate_frames():
         frame_bytes = buffer.tobytes()
         yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
 
-        time.sleep(0.01)
+        time.sleep(cfg.FRAME_SLEEP_DELAY)
 
     camera.release()
 
@@ -142,6 +143,6 @@ def test():
     return {"status": "ok", "message": "CORS is working"}
 
 if __name__ == '__main__':
-    print("🚀 Starting server on http://0.0.0.0:5000")
-    print("📡 CORS enabled for: http://localhost:3000, http://127.0.0.1:3000, http://localhost:5173")
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True, allow_unsafe_werkzeug=True)
+    print(f"🚀 Starting server on http://{cfg.SERVER_HOST}:{cfg.SERVER_PORT}")
+    print(f"📡 CORS enabled for: {', '.join(cfg.FRONTEND_ORIGINS)}")
+    socketio.run(app, host=cfg.SERVER_HOST, port=cfg.SERVER_PORT, debug=True, allow_unsafe_werkzeug=True)
