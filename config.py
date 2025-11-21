@@ -19,7 +19,8 @@ FRONTEND_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:5173"
 ]
-
+ICON_PATH = "./face.png"  # Tên file ảnh của bạn # Tên file ảnh của bạn
+ICON_SCALE_RATIO = 0.8
 # Socket.IO Configuration
 SOCKET_PING_TIMEOUT = 60
 SOCKET_PING_INTERVAL = 25
@@ -27,7 +28,7 @@ SOCKET_PING_INTERVAL = 25
 # ============================================
 # 2. CẤU HÌNH CAMERA RTSP
 # ============================================
-RTSP_URL = 'rtsp://admin:Promise%40123@192.168.100.62/ONVIF/MediaInput?profile=def_profile1'
+RTSP_URL = 'rtsp://ipro:Promise123@192.168.100.65/Src/MediaInput/h264/stream_1'
 
 # ============================================
 # 3. CẤU HÌNH XỬ LÝ ẢNH/VIDEO
@@ -39,8 +40,8 @@ FRAME_SLEEP_DELAY = 0.01  # Delay giữa các frame (giây)
 # ============================================
 # 4. CẤU HÌNH VÙNG AN TOÀN (SAFE ZONE)
 # ============================================
-ZONE_WIDTH = 180
-ZONE_HEIGHT = 260
+ZONE_WIDTH = 260
+ZONE_HEIGHT = 290
 # Tự động tính toán căn giữa
 ZONE_X = (FRAME_WIDTH - ZONE_WIDTH) // 2
 ZONE_Y = (FRAME_HEIGHT - ZONE_HEIGHT) // 2
@@ -69,9 +70,9 @@ COLOR_YELLOW = (0, 255, 255)
 COLOR_WHITE = (255, 255, 255)
 
 # Độ dày đường vẽ
-THICKNESS_NORMAL = 2
-THICKNESS_THICK = 4
-THICKNESS_ELLIPSE = 6
+THICKNESS_NORMAL = 0
+THICKNESS_THICK = 0
+THICKNESS_ELLIPSE = 0
 
 # Độ trong suốt overlay
 OVERLAY_ALPHA = 0.0

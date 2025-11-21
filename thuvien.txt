@@ -1,28 +1,14 @@
-# Danh sách thư viện Python cần thiết cho Face-Server
-# Cài đặt nhanh bằng lệnh: pip install -r thuvien.txt
 
-# Web Framework
 flask
 flask-socketio
 flask-cors
 
-# Computer Vision & Image Processing
 opencv-python
 opencv-contrib-python
 numpy
 
-# Face Detection & Recognition
+
 mediapipe
 
-# RTSP Camera Streaming
-python-rtsp
 
-# Các thư viện bổ sung (nếu cần)
-# Pillow (nếu cần xử lý ảnh thêm)
-# pillow
-
-# Ghi chú:
-# - time, os, threading là thư viện built-in của Python, không cần cài
-# - Đảm bảo Python version >= 3.7
-# - Nếu gặp lỗi với opencv, thử: pip install opencv-python-headless
-
+rtsp

@@ -9,7 +9,7 @@ from flask_cors import CORS
 # --- IMPORT MODULE CÁ NHÂN ---
 from camera_service import CameraStream
 from face_logic import FaceProcessor
-import config as cfg 
+import config as cfg
 
 # --- KHỞI TẠO FLASK & CONFIG ---
 app = Flask(__name__)
@@ -37,6 +37,7 @@ app_state = {
     "is_capturing": False
 }
 
+
 # --- CÁC SỰ KIỆN SOCKET ---
 
 @socketio.on('start_capture')
@@ -45,11 +46,13 @@ def handle_start_capture():
     print("📢 Socket: BẮT ĐẦU CHỤP!")
     app_state["is_capturing"] = True
 
+
 @socketio.on('stop_capture')
 def handle_stop_capture():
     """Client bấm nút 'Hủy' hoặc đóng modal"""
     print("📢 Socket: HỦY CHỤP!")
     app_state["is_capturing"] = False
+
 
 # --- HÀM XỬ LÝ VIDEO STREAM ---
 
@@ -71,7 +74,7 @@ def generate_frames():
             continue
 
         # --- LOGIC XỬ LÝ ---
-        
+
         if app_state["is_capturing"]:
             # === TRẠNG THÁI: ĐANG QUÉT ===
             # Xử lý AI, vẽ khung
@@ -89,7 +92,7 @@ def generate_frames():
 
                 # 1. Chuyển đổi ảnh sang Base64 (Không lưu file)
                 retval, buffer = cv2.imencode('.jpg', face_image)
-                
+
                 if retval:
                     jpg_as_text = base64.b64encode(buffer).decode('utf-8')
                     base64_string = f"data:image/jpeg;base64,{jpg_as_text}"
@@ -100,12 +103,12 @@ def generate_frames():
 
                 # 3. Reset trạng thái về Idle ngay lập tức
                 app_state["is_capturing"] = False
-                processor.consecutive_success_frames = 0 # Reset bộ đếm AI
-                
+                processor.consecutive_success_frames = 0  # Reset bộ đếm AI
+
                 # Gửi thông báo về trạng thái chờ
                 socketio.emit('face_status', {
                     'status': 'idle',
-                    'message': 'Chờ quét thẻ tiếp theo...'
+                    'message': 'Vui lòng thử lại...'
                 })
                 print("-> 🛑 Đã tự động đóng chế độ chụp.")
 
@@ -114,7 +117,7 @@ def generate_frames():
             # Reset bộ đếm để lần sau quét lại từ đầu
             if processor.consecutive_success_frames > 0:
                 processor.consecutive_success_frames = 0
-            
+
             # Không gọi process_and_draw để frame sạch, tiết kiệm CPU
 
         # --- STREAM HÌNH ẢNH VỀ TRÌNH DUYỆT ---
@@ -122,11 +125,12 @@ def generate_frames():
         if ret:
             frame_bytes = buffer.tobytes()
             yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-        
+
         time.sleep(cfg.FRAME_SLEEP_DELAY)
 
     # Khi vòng lặp kết thúc (nếu có cơ chế break)
     camera.release()
+
 
 # --- ROUTES HTTP ---
 
@@ -134,9 +138,11 @@ def generate_frames():
 def video_feed():
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
+
 @app.route('/test')
 def test():
     return {"status": "ok", "message": "Server is running & CORS enabled"}
+
 
 # --- MAIN ---
 if __name__ == '__main__':
