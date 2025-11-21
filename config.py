@@ -19,8 +19,9 @@ FRONTEND_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:5173"
 ]
-ICON_PATH = "./face.png"  # Tên file ảnh của bạn # Tên file ảnh của bạn
-ICON_SCALE_RATIO = 0.8
+ICON_PATH = "./face.png"  # Tên file ảnh của bạn
+ICON_SCALE_RATIO = 0.8  # Tỷ lệ scale icon so với zone
+ICON_SCALE_MULTIPLIER = 2.0  # Hệ số nhân thêm cho kích thước icon (thay vì hardcode)
 # Socket.IO Configuration
 SOCKET_PING_TIMEOUT = 60
 SOCKET_PING_INTERVAL = 25
